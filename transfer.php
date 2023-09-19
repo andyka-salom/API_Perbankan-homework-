@@ -1,81 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<link href="../css/transfer.css" rel="stylesheet" type="text/css">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATM - Transfer Money</title>
-   
+    <title>Document</title>
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+h1 {
+    color: #333;
+}
+
+.result {
+    font-size: 24px;
+    margin-top: 20px;
+}
+
+.error {
+    color: red;
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+        </style>
 </head>
 <body>
-    <div class="container">
-        <h1>ATM - Transfer Money</h1>
-        <div class="form-container">
-            <form action="api/transfer.php" method="POST">
-                <!-- <label for="from-account">From Account ID:</label>
-                <input type="text" id="from-account" name="from_account" placeholder="From Account ID">
-                <label for="to-account">To Account ID:</label>
-                <input type="text" id="to-account" name="to_account" placeholder="To Account ID">
-                <label for="amount">Amount:</label>
-                <input type="text" id="amount" name="amount" placeholder="Amount">
-                <input type="submit" value="Transfer Money"> -->
-                <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Tombol Kembali</title>
-</head>
-<body>
-    <a href="../index.php" class="kembali-button">Kembali</a>
-</body>
-</html>
-            </form>
-        </div>
+<?php
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        require 'db_config.php'; // Include file konfigurasi database
 
-        <?php
-        include('../config.php');
+        $fromAccountId = $_POST['sender_account_id'];
+        $toAccountId = $_POST['receiver_account_id'];
+        $amount = $_POST['amount'];
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $fromAccountId = $_POST['from_account'];
-            $toAccountId = $_POST['to_account'];
-            $amount = $_POST['amount'];
+        // Cek apakah saldo mencukupi
+        $query = "SELECT saldo FROM accounts WHERE id = $fromAccountId";
+        $result = mysqli_query($connection, $query);
 
-            // Cek apakah saldo mencukupi
-            $fromAccountBalance = $conn->query("SELECT balance FROM tbl_accounts WHERE id = $fromAccountId")->fetch_assoc()['balance'];
+        if ($result && mysqli_num_rows($result) > 0) {
+            $fromAccountBalance = mysqli_fetch_assoc($result)['saldo'];
 
-            echo '<div class="result-container">';
             if ($fromAccountBalance >= $amount) {
                 // Mulai transaksi
-                $conn->begin_transaction();
+                mysqli_autocommit($connection, false);
 
                 // Kurangi saldo dari akun pengirim
-                $conn->query("UPDATE tbl_accounts SET balance = balance - $amount WHERE id = $fromAccountId");
+                $debit_query = "UPDATE accounts SET saldo = saldo - $amount WHERE id = $fromAccountId";
 
                 // Tambah saldo ke akun penerima
-                $conn->query("UPDATE tbl_accounts SET balance = balance + $amount WHERE id = $toAccountId");
+                $credit_query = "UPDATE accounts SET saldo = saldo + $amount WHERE id = $toAccountId";
 
-                // Catat transaksi
-                $timestamp = time();
-                $conn->query("INSERT INTO tbl_transactions (from_account, to_account, amount, timestamp) VALUES ($fromAccountId, $toAccountId, $amount, NOW())");
+                // Insert transaksi
+                $transaction_query = "INSERT INTO transactions (akun_id, jenis_transaksi, jumlah) VALUES ($fromAccountId, 'debit', $amount),
+                                      ($toAccountId, 'kredit', $amount)";
 
-                // Commit transaksi
-                $conn->commit();
+                if (mysqli_query($connection, $debit_query) && mysqli_query($connection, $credit_query) && mysqli_query($connection, $transaction_query)) {
+                    mysqli_commit($connection);
+                    echo '<div class="result-title">Transfer Successful</div>';
+                    echo '<div class="result-text">Amount: ' . $amount . '</div>';
+                    echo '<div class="result-text">From Account: ' . $fromAccountId . '</div>';
+                    echo '<div class="result-text">To Account: ' . $toAccountId . '</div>';
+                } else {
+                    mysqli_rollback($connection);
+                    http_response_code(400);
+                    echo '<div class="result-title">Transfer Failed</div>';
+                    echo '<div class="result-text">Error: There was an issue with the transaction</div>';
+                }
 
-                echo '<div class="result-title">Transfer Successful</div>';
-                echo '<div class="result-text">Amount: ' . $amount . '</div>';
-                echo '<div class="result-text">From Account: ' . $fromAccountId . '</div>';
-                echo '<div class="result-text">To Account: ' . $toAccountId . '</div>';
+                mysqli_close($connection);
             } else {
                 http_response_code(400);
                 echo '<div class="result-title">Transfer Failed</div>';
                 echo '<div class="result-text">Error: Insufficient balance</div>';
             }
-            echo '</div>';
+        } else {
+            http_response_code(400);
+            echo '<div class="result-title">Transfer Failed</div>';
+            echo '<div class="result-text">Error: Sender account not found</div>';
         }
-        ?>
-    </div>
-</body>
-</html>
+    }
+    ?>
+    </body>
+    </html>

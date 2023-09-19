@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banking API</title>
+    <style>
+        /* Gaya umum untuk halaman */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+/* Gaya untuk judul utama */
+h1 {
+    color: #333;
+    background-color: #fff;
+    padding: 20px;
+    margin: 0;
+}
+
+/* Gaya untuk judul-judul sekunder */
+h2 {
+    color: #333;
+    margin-top: 30px;
+}
+
+/* Gaya untuk form */
+form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    max-width: 500px;
+}
+
+/* Gaya untuk label pada form */
+label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* Gaya untuk input pada form */
+input[type="text"] {
+    width: 80%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+/* Gaya untuk tombol pada form */
+button[type="submit"] {
+    background-color: #007BFF;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+/* Gaya untuk tombol pada hover */
+button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+    </style>
+</head>
+<body>
+    <h1>Banking API</h1>
+
+    <h2>Check Balance</h2>
+    <form action="balance.php" method="GET">
+        <label for="account_id">Account ID:</label>
+        <input type="text" id="account_id" name="account_id" required>
+        <button type="submit">Check Balance</button>
+    </form>
+
+    <h2>Transfer Money</h2>
+    <form action="transfer.php" method="POST">
+        <label for="sender_account_id">ID Akun Pengirim:</label>
+        <input type="text" name="sender_account_id" id="sender_account_id" required><br><br>
+
+        <label for="receiver_account_id">ID Akun Penerima:</label>
+        <input type="text" name="receiver_account_id" id="receiver_account_id" required><br><br>
+
+        <label for="amount">Jumlah Transfer:</label>
+        <input type="text" name="amount" id="amount" required><br><br>
+
+        <button type="submit">Transfer</button>
+    </form>
+
+    <h2>Recent Transactions</h2>
+    <form action="transactions.php" method="GET">
+        <label for="account_id">Account ID:</label>
+        <input type="text" id="account_id" name="account_id" required>
+        <button type="submit">Get Transactions</button>
+    </form>
+</body>
+</html>
